@@ -1,0 +1,127 @@
+﻿<html xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"> 
+<head>
+<title>Pie</title>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:TemplateHidden msdt:dt="string">0</mso:TemplateHidden>
+<mso:MasterPageDescription msdt:dt="string">Display Items as a Pie Chart</mso:MasterPageDescription>
+<mso:ContentTypeId msdt:dt="string">0x0101002039C03B61C64EC4A04F5361F385106601</mso:ContentTypeId>
+<mso:TargetControlType msdt:dt="string">;#Content Web Parts;#</mso:TargetControlType>
+<mso:HtmlDesignAssociated msdt:dt="string">1</mso:HtmlDesignAssociated>
+<mso:CrawlerXSLFile msdt:dt="string"></mso:CrawlerXSLFile>
+<mso:HtmlDesignPreviewUrl msdt:dt="string"></mso:HtmlDesignPreviewUrl>
+<mso:HtmlDesignConversionSucceeded msdt:dt="string">True</mso:HtmlDesignConversionSucceeded>
+<mso:HtmlDesignStatusAndPreview msdt:dt="string">https://sharepointknight.sharepoint.com/sites/searchdemo/_catalogs/masterpage/Display%20Templates/Content%20Web%20Parts/Control_Pie.html, Conversion successful.</mso:HtmlDesignStatusAndPreview>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+
+<body>
+
+    <!--
+            Warning: Do not try to add HTML to this section. Only the contents of the first <div>
+            inside the <body> tag will be used while executing Display Template code. Any HTML that
+            you add to this section will NOT become part of your Display Template.
+    -->
+    <script>
+        $includeLanguageScript(this.url, "~sitecollection/_catalogs/masterpage/Display Templates/Language Files/{Locale}/CustomStrings.js");
+        $includeScript(this.url,"https://d3js.org/d3.v3.min.js");
+        $includeScript(this.url, "~sitecollection/_catalogs/masterpage/Display Templates/Content Web Parts/d3pie.js");
+    </script>
+
+    <!--
+        Use the div below to author your Display Template. Here are some things to keep in mind:
+        * Surround any JavaScript logic as shown below using a "pound underscore" (#_ ... _#) token
+        inside a comment.
+
+        * Use the values assigned to your variables using an "underscore pound equals"
+        (_#= ... =#_) token.
+    -->
+
+    <div id="Control_Pie">
+    	<div class="piechart" data-role="piechart" id="piechart_#=ctx.ListData.QueryId=#_" data-width=300 data-height=300 data-r=130 data-ir=20></div>
+    <!--#_ 
+if (!$isNull(ctx.ClientControl) &&
+    !$isNull(ctx.ClientControl.shouldRenderControl) &&
+    !ctx.ClientControl.shouldRenderControl())
+{
+    return "";
+}
+ctx.ListDataJSONGroupsKey = "ResultTables";
+var $noResults = Srch.ContentBySearch.getControlTemplateEncodedNoResultsMessage(ctx.ClientControl);
+
+var noResultsClassName = "ms-srch-result-noResults";
+var SPKnight = SPKnight || {};
+SPKnight[ctx.ListData.QueryId] = 
+				{
+					"data": [
+						{
+							"segments": []
+						}]
+				};
+var ListRenderRenderWrapper = function(itemRenderResult, inCtx, tpl)
+{   	
+	var data = '{"label": "Bad Data Format","value": 100}';
+   	if(itemRenderResult[0] == "{")
+   		data = itemRenderResult;
+   	var obj = JSON.parse(data);
+   	var index = -1;
+   	var tmp = $.grep(SPKnight[inCtx.ListData.QueryId].data[0].segments,function (itm, idx) {
+   		if(itm.label == obj.label)
+   		{
+   			index = idx;
+   			return true;
+   		}
+   		else
+   		{
+   			return false;
+   		}
+   	});
+   	if(tmp.length > 0)
+   	{
+   		SPKnight[inCtx.ListData.QueryId].data[0].segments[index].value += obj.value;
+   	}
+   	else
+   	{
+		SPKnight[inCtx.ListData.QueryId].data[0].segments.push(JSON.parse(data));
+	}
+	
+    return '';
+}
+ctx['ItemRenderWrapper'] = ListRenderRenderWrapper;
+_#-->
+     _#= ctx.RenderGroups(ctx) =#_
+<!--#_
+if (ctx.ClientControl.get_shouldShowNoResultMessage())
+{
+_#-->
+        <div class="_#= noResultsClassName =#_">_#= $noResults =#_</div>
+<!--#_
+}
+
+AddPostRenderCallback(ctx, function(){
+	var selector = "#piechart"+ctx.ListData.QueryId;
+	
+	for(var i=0;i<SPKnight[ctx.ListData.QueryId].data[0].segments.length;i++)
+	{
+		SPKnight[ctx.ListData.QueryId].data[0].segments[i].label = SPKnight[ctx.ListData.QueryId].data[0].segments[i].label + " - " + SPKnight[ctx.ListData.QueryId].data[0].segments[i].value;
+	}
+	
+	var obj = $(selector);
+	var options = {
+		data: SPKnight[ctx.ListData.QueryId].data,
+		width: obj.data("width"),
+		height: obj.data("height"),
+		r: obj.data("r"),
+		ir: obj.data("ir")
+	};
+	
+	obj.piechart(options);
+	obj.piechart('update', SPKnight[ctx.ListData.QueryId].data[0].segments);
+});
+_#-->
+
+    </div>
+</body>
+</html>
